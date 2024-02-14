@@ -1,5 +1,7 @@
+import 'package:app_absensi_puskesmas/services/auth_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,54 +13,63 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formState = GlobalKey<FormState>();
   bool passToggle = true;
+  bool _isLoading = false;
   TextEditingController usernameTextController = TextEditingController();
   TextEditingController passwordTextController = TextEditingController();
 
-  // void _validateForm() {
-  //   if (_formState.currentState!.validate()) {
-  //     _login();
-  //   }
-  // }
+  void _validateForm() {
+    if (_formState.currentState!.validate()) {
+      _login();
+    }
+  }
 
-  // void _login() async {
-  //   try {
-  //     setState(() {
-  //       _isLoading = true;
-  //     });
-  //     final Map<String, dynamic> data = {
-  //       "username": usernameTextController.text,
-  //       "password": passwordTextController.text
-  //     };
+  void showSnackBar(text) {
+    SnackBar snackBar = SnackBar(
+      content: Text(text.toString()),
+    );
 
-  //     final response = await AuthService().authLogin(data);
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
-  //     if (response['success']) {
-  //       SharedPreferences prefs = await SharedPreferences.getInstance();
-  //       await prefs.setString('appToken', response['token']);
-  //       await prefs.setInt('userId', response['user']['id']);
-  //       int level = response['user']['jabatan']['level'];
-  //       await prefs.setInt('userLevel', level);
+  void _login() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      final Map<String, dynamic> data = {
+        "username": usernameTextController.text,
+        "password": passwordTextController.text
+      };
 
-  //       if (context.mounted) {
-  //         if (level == 1) {
-  //           Navigator.pushReplacementNamed(context, '/home-petugas');
-  //         } else {
-  //           _showSnackBar('Belum ada level');
-  //         }
-  //       }
-  //     } else {
-  //       _showSnackBar(response['message']);
-  //     }
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   } catch (e) {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //     _showSnackBar('Error :$e');
-  //   }
-  // }
+      final response = await AuthService().authLogin(data);
+
+      if (response['success']) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('appToken', response['token']);
+        await prefs.setInt('userId', response['user']['id']);
+        int level = response['user']['level'];
+        await prefs.setInt('userLevel', level);
+
+        if (context.mounted) {
+          if (level == 2) {
+            Navigator.pushReplacementNamed(context, '/bottom-navbar');
+          } else {
+            showSnackBar('Belum ada level');
+          }
+        }
+      } else {
+        showSnackBar(response['message']);
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      showSnackBar('Error :$e');
+    }
+  }
 
   Widget usernameForm() {
     return Container(
@@ -142,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
       height: 50,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/home-page-admin');
+          Navigator.pushNamed(context, '/bottom-navbar');
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
