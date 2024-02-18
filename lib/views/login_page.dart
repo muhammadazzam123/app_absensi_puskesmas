@@ -54,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
           if (level == 2) {
             Navigator.pushReplacementNamed(context, '/bottom-navbar');
           } else {
-            showSnackBar('Belum ada level');
+            showSnackBar('Kamu tidak punya akses');
           }
         }
       } else {
@@ -152,23 +152,21 @@ class _LoginPageState extends State<LoginPage> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/bottom-navbar');
-        },
+        onPressed: _validateForm,
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
-        child: Text(
+        child: !_isLoading ? Text(
           'Masuk',
           style: openSansTextStyle.copyWith(
             fontSize: 15,
             fontWeight: regular,
             color: whiteColor,
           ),
-        ),
+        ) : CircularProgressIndicator(color: whiteColor,),
       ),
     );
   }

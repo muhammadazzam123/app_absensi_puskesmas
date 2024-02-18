@@ -1,8 +1,147 @@
+import 'dart:io';
+
+import 'package:app_absensi_puskesmas/models/absensi_model.dart';
+import 'package:app_absensi_puskesmas/models/user_model.dart';
+import 'package:app_absensi_puskesmas/services/absensi_service.dart';
+import 'package:app_absensi_puskesmas/services/location_service.dart';
+import 'package:app_absensi_puskesmas/services/user_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 
-class AttendancePage extends StatelessWidget {
+class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
+
+  @override
+  State<AttendancePage> createState() => _AttendancePageState();
+}
+
+class _AttendancePageState extends State<AttendancePage> {
+  // lokasi bidar
+  String locationName = 'Universitas Bina Darma';
+  double locationLatitude = -2.9634624;
+  double locationLongitude = 104.7317928;
+  // lokasi puskesmas
+  // String locationName = 'Puskesmas Tanjung Raja';
+  // double locationLatitude = 0.0;
+  // double locationLongitude = 0.0;
+  bool _isLoading = false;
+  Future<File>? imageFile;
+  File? fotoFile;
+  String? fotoName;
+  late User _userData;
+
+  _showSnackBar(String text) {
+    SnackBar snackBar = SnackBar(
+      content: Text(text),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  Future<void> _showMyDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Sedang validasi lokasi',
+          ),
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                const SizedBox(height: 20),
+                Center(
+                  child: SizedBox(
+                    height: 70,
+                    width: 70,
+                    child: CircularProgressIndicator(
+                      color: primaryColor,
+                      strokeWidth: 7,
+                      backgroundColor: Colors.grey,
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  _checkDistance() async {
+    _showMyDialog();
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      await LocationService().checkLocationPermission();
+      Position userCurrentPosition =
+          await LocationService().getUserCurrentPosition();
+      double distance = Geolocator.distanceBetween(userCurrentPosition.latitude,
+          userCurrentPosition.longitude, locationLatitude, locationLongitude);
+      _sendPresence(distance.round());
+    } catch (e) {
+      _showSnackBar('Error $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+    if (context.mounted && !_isLoading) Navigator.pop(context);
+  }
+
+  _sendPresence(int distance) async {
+    if (distance <= 100) {
+      try {
+        _userData = await UserService().getUserById();
+        var data = {
+          'user_id': _userData.id,
+          'lokasi': locationName,
+        };
+        var res = await AbsensiService().postAbsensi(data, fotoFile!);
+        if (res['success']) {
+          if (context.mounted) {
+            Navigator.pushReplacementNamed(
+              context,
+              '/hasil-absensi',
+              arguments: HasilArguments(_userData, locationName, fotoFile!),
+            );
+          }
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        if (context.mounted && !_isLoading) Navigator.pop(context);
+        _showSnackBar('Error $e');
+      }
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      _showSnackBar('Kamu berada di luar Jangkauan ($distance meter)');
+    }
+  }
+
+  _caputerPhoto() async {
+    final ImagePicker picker = ImagePicker();
+    XFile? capturedFile = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 50,
+        maxHeight: 400,
+        maxWidth: 400);
+    if (capturedFile == null) return;
+    fotoFile = File(capturedFile.path);
+    setState(() {
+      fotoName = fotoFile!.path.split('/').last;
+    });
+    _checkDistance();
+  }
 
   Widget listAbsen() {
     return Container(
@@ -103,7 +242,7 @@ class AttendancePage extends StatelessWidget {
         child: SizedBox(
           height: 50,
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: _caputerPhoto,
             label: Text(
               'Hadir',
               style: openSansTextStyle.copyWith(
