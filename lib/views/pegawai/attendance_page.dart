@@ -9,6 +9,8 @@ import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({super.key});
@@ -31,6 +33,19 @@ class _AttendancePageState extends State<AttendancePage> {
   File? fotoFile;
   String? fotoName;
   late User _userData;
+  late Future<List<RiwayatAbsensi>> _riwayatAbsensiData;
+  late DateFormat dateFormat;
+  late DateFormat timeFormat;
+
+  @override
+  void initState() {
+    super.initState();
+  
+    initializeDateFormatting();
+    dateFormat = DateFormat.yMMMMEEEEd('id');
+    timeFormat = DateFormat.Hm('id');
+    _riwayatAbsensiData = AbsensiService().getAbsensisById();
+  }
 
   _showSnackBar(String text) {
     SnackBar snackBar = SnackBar(
@@ -106,11 +121,9 @@ class _AttendancePageState extends State<AttendancePage> {
         var res = await AbsensiService().postAbsensi(data, fotoFile!);
         if (res['success']) {
           if (context.mounted) {
-            Navigator.pushReplacementNamed(
-              context,
-              '/hasil-absensi',
-              arguments: HasilArguments(_userData, locationName, fotoFile!),
-            );
+            setState(() {
+              
+            });
           }
         }
       } catch (e) {
@@ -143,7 +156,7 @@ class _AttendancePageState extends State<AttendancePage> {
     _checkDistance();
   }
 
-  Widget listAbsen() {
+  Widget listAbsen(tanggalAbsen, absenHadir, absenPulang, jamKerja) {
     return Container(
       margin: const EdgeInsets.only(top: 20),
       child: Column(
@@ -152,7 +165,7 @@ class _AttendancePageState extends State<AttendancePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '12/06/2024',
+                '$tanggalAbsen',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -164,7 +177,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                '08.30',
+                '$absenHadir',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -176,7 +189,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                '08.30',
+                '$absenPulang',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -188,7 +201,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                '8h 30ms',
+                '$jamKerja',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -201,6 +214,30 @@ class _AttendancePageState extends State<AttendancePage> {
         ],
       ),
     );
+  }
+
+  Widget listOfListAbsen() {
+    return FutureBuilder(future: _riwayatAbsensiData, builder: (context, snapshot) {
+      if (snapshot.hasData) {
+        return ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          itemCount: snapshot.data!.length,
+          itemBuilder: (context, index) {
+            final tanggalAbsen = dateFormat.format(DateTime.parse(snapshot.data![index].createdAt.toString())).toString();
+            final absenHadir = timeFormat.format(DateTime.parse(snapshot.data![index].createdAt.toString()));
+            final absenPulang = timeFormat.format(DateTime.parse(snapshot.data![index].updatedAt.toString()));
+            final jamPulang = (absenHadir == absenPulang) ? '--.--' : absenPulang.toString();
+            final jamKerja = (absenHadir == absenPulang) ? '--.--' : DateTime.parse(snapshot.data![index].updatedAt.toString()).difference(DateTime.parse(snapshot.data![index].createdAt.toString()));
+            return listAbsen(tanggalAbsen, absenHadir.toString(), jamPulang, jamKerja);
+          });
+      } else if (snapshot.hasError) {
+       return Text(snapshot.error.toString());
+      }
+      return Container(
+          alignment: Alignment.center,
+          child: const Center(child: CircularProgressIndicator()),
+        );
+    });
   }
 
   @override
@@ -224,7 +261,7 @@ class _AttendancePageState extends State<AttendancePage> {
                 style: openSansTextStyle.copyWith(
                     fontSize: 14, fontWeight: semiBold, color: blackColor),
               ),
-              listAbsen(),
+              listOfListAbsen()
             ],
           ),
         ),
