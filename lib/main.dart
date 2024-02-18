@@ -14,8 +14,11 @@ import 'package:app_absensi_puskesmas/views/pimpinan/data_pegawai.dart';
 import 'package:app_absensi_puskesmas/views/pimpinan/detail_absensi_pegawai.dart';
 import 'package:app_absensi_puskesmas/views/pimpinan/home_pimpinan_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 

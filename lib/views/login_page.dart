@@ -40,8 +40,9 @@ class _LoginPageState extends State<LoginPage> {
         "username": usernameTextController.text,
         "password": passwordTextController.text
       };
-
+      print("test");
       final response = await AuthService().authLogin(data);
+      print(response);
 
       if (response['success']) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -68,6 +69,7 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = false;
       });
       showSnackBar('Error :$e');
+      print(e);
     }
   }
 
@@ -159,14 +161,18 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
-        child: !_isLoading ? Text(
-          'Masuk',
-          style: openSansTextStyle.copyWith(
-            fontSize: 15,
-            fontWeight: regular,
-            color: whiteColor,
-          ),
-        ) : CircularProgressIndicator(color: whiteColor,),
+        child: !_isLoading
+            ? Text(
+                'Masuk',
+                style: openSansTextStyle.copyWith(
+                  fontSize: 15,
+                  fontWeight: regular,
+                  color: whiteColor,
+                ),
+              )
+            : CircularProgressIndicator(
+                color: whiteColor,
+              ),
       ),
     );
   }
