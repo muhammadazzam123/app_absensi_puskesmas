@@ -40,7 +40,7 @@ class _AttendancePageState extends State<AttendancePage> {
   @override
   void initState() {
     super.initState();
-  
+
     initializeDateFormatting();
     dateFormat = DateFormat.yMMMMEEEEd('id');
     timeFormat = DateFormat.Hm('id');
@@ -121,9 +121,7 @@ class _AttendancePageState extends State<AttendancePage> {
         var res = await AbsensiService().postAbsensi(data, fotoFile!);
         if (res['success']) {
           if (context.mounted) {
-            setState(() {
-              
-            });
+            setState(() {});
           }
         }
       } catch (e) {
@@ -217,27 +215,45 @@ class _AttendancePageState extends State<AttendancePage> {
   }
 
   Widget listOfListAbsen() {
-    return FutureBuilder(future: _riwayatAbsensiData, builder: (context, snapshot) {
-      if (snapshot.hasData) {
-        return ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          itemCount: snapshot.data!.length,
-          itemBuilder: (context, index) {
-            final tanggalAbsen = dateFormat.format(DateTime.parse(snapshot.data![index].createdAt.toString())).toString();
-            final absenHadir = timeFormat.format(DateTime.parse(snapshot.data![index].createdAt.toString()));
-            final absenPulang = timeFormat.format(DateTime.parse(snapshot.data![index].updatedAt.toString()));
-            final jamPulang = (absenHadir == absenPulang) ? '--.--' : absenPulang.toString();
-            final jamKerja = (absenHadir == absenPulang) ? '--.--' : DateTime.parse(snapshot.data![index].updatedAt.toString()).difference(DateTime.parse(snapshot.data![index].createdAt.toString()));
-            return listAbsen(tanggalAbsen, absenHadir.toString(), jamPulang, jamKerja);
-          });
-      } else if (snapshot.hasError) {
-       return Text(snapshot.error.toString());
-      }
-      return Container(
-          alignment: Alignment.center,
-          child: const Center(child: CircularProgressIndicator()),
-        );
-    });
+    return FutureBuilder(
+        future: _riwayatAbsensiData,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height,
+              child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final tanggalAbsen = dateFormat
+                        .format(DateTime.parse(
+                            snapshot.data![index].createdAt.toString()))
+                        .toString();
+                    final absenHadir = timeFormat.format(DateTime.parse(
+                        snapshot.data![index].createdAt.toString()));
+                    final absenPulang = timeFormat.format(DateTime.parse(
+                        snapshot.data![index].updatedAt.toString()));
+                    final jamPulang = (absenHadir == absenPulang)
+                        ? '--.--'
+                        : absenPulang.toString();
+                    final jamKerja = (absenHadir == absenPulang)
+                        ? '--.--'
+                        : DateTime.parse(
+                                snapshot.data![index].updatedAt.toString())
+                            .difference(DateTime.parse(
+                                snapshot.data![index].createdAt.toString()));
+                    return listAbsen(tanggalAbsen, absenHadir.toString(),
+                        jamPulang, jamKerja);
+                  }),
+            );
+          } else if (snapshot.hasError) {
+            return Text(snapshot.error.toString());
+          }
+          return Container(
+            alignment: Alignment.center,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        });
   }
 
   @override
