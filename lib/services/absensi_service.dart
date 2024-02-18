@@ -11,7 +11,7 @@ class AbsensiService {
 
   postAbsensi(data, File foto) async {
     try {
-      var fullUri = '$_apiUri/v1/absensis';
+      var fullUri = '$_apiUri/api/v1/absensis';
       String fotoName = foto.path.split('/').last;
 
       final formData = FormData.fromMap({
@@ -31,7 +31,7 @@ class AbsensiService {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       int? userId = prefs.getInt('userId');
-      var fullUri = '$_apiUri/v1/absensis/$userId';
+      var fullUri = '$_apiUri/api/v1/absensis/$userId';
       final response = await dio.get(fullUri);
       debugPrint(response.data['absensis'].toString());
       return (response.data['absensis'] as List)
@@ -44,7 +44,7 @@ class AbsensiService {
 
   Future<List<RiwayatAbsensi>> getPegawaiAbsensiById(id) async {
     try {
-      var fullUri = '$_apiUri/v1/absensis/$id';
+      var fullUri = '$_apiUri/api/v1/absensis/$id';
       final response = await dio.get(fullUri);
       return (response.data['absensis'] as List)
           .map((e) => RiwayatAbsensi.fromJson(e))
@@ -56,7 +56,7 @@ class AbsensiService {
 
   Future<List<RiwayatAbsensi>> getAllAbsensi() async {
     try {
-      String fullUri = '$_apiUri/v1/absensis';
+      String fullUri = '$_apiUri/api/v1/absensis';
       final response = await dio.get(fullUri);
       return (response.data as List)
           .map((e) => RiwayatAbsensi.fromJson(e))

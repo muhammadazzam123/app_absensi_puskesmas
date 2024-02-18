@@ -15,7 +15,7 @@ class AuthService {
 
   authLogin(data) async {
     try {
-      var fullUri = '$_apiUri/v1/login';
+      var fullUri = '$_apiUri/api/v1/login';
       final response = await dio.post(fullUri, data: data);
       return response.data;
     } on DioException catch (e) {
@@ -25,7 +25,7 @@ class AuthService {
 
   authLogout() async {
     try {
-      var fullUri = '$_apiUri/v1/logout';
+      var fullUri = '$_apiUri/api/v1/logout';
       await _getToken();
       var response = await dio.post(fullUri,
           options: Options(headers: {

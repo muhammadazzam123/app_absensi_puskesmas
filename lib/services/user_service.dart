@@ -12,7 +12,7 @@ class UserService {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       int? userId = prefs.getInt('userId');
-      var fullUri = '$_apiUri/v1/users/$userId';
+      var fullUri = '$_apiUri/api/v1/users/$userId';
       final response = await dio.get(fullUri);
       return User.fromJson(response.data['user']);
     } on DioException catch (e) {
