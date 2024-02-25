@@ -34,17 +34,23 @@ class _AttendancePageState extends State<AttendancePage> {
   String? fotoName;
   late User _userData;
   late Future<List<RiwayatAbsensi>> _riwayatAbsensiData;
+  late Future<LatestAbsensi> latestAbsensi;
   late DateFormat dateFormat;
   late DateFormat timeFormat;
+  final currentDatetime = DateTime.now();
+  late String formattedCurrentDatetime;
 
   @override
   void initState() {
     super.initState();
 
     initializeDateFormatting();
-    dateFormat = DateFormat.yMMMMEEEEd('id');
+    dateFormat = DateFormat.yMd('id');
     timeFormat = DateFormat.Hm('id');
     _riwayatAbsensiData = AbsensiService().getAbsensisById();
+    latestAbsensi = AbsensiService().getLatestAbsensi();
+    formattedCurrentDatetime =
+        dateFormat.format(currentDatetime.toLocal()).toString();
   }
 
   _showSnackBar(String text) {
@@ -101,6 +107,7 @@ class _AttendancePageState extends State<AttendancePage> {
       double distance = Geolocator.distanceBetween(userCurrentPosition.latitude,
           userCurrentPosition.longitude, locationLatitude, locationLongitude);
       _sendPresence(distance.round());
+      if (context.mounted) Navigator.pop(context);
     } catch (e) {
       _showSnackBar('Error $e');
       setState(() {
@@ -109,6 +116,18 @@ class _AttendancePageState extends State<AttendancePage> {
     }
     if (context.mounted && !_isLoading) Navigator.pop(context);
   }
+
+  // getTanggalTerakhir() async {
+  //   try {
+  //     final response = await AbsensiService().getLatestAbsensi();
+  //     final tglTerakhir = response.createdAt;
+  //     final formatTglTerakhir =
+  //         dateFormat.format(DateTime.parse(tglTerakhir!)).toString();
+  //     return formatTglTerakhir;
+  //   } catch (e) {
+  //     return;
+  //   }
+  // }
 
   _sendPresence(int distance) async {
     if (distance <= 100) {
@@ -154,7 +173,7 @@ class _AttendancePageState extends State<AttendancePage> {
     _checkDistance();
   }
 
-  Widget listAbsen(tanggalAbsen, absenHadir, absenPulang, jamKerja) {
+  Widget listAbsen(tanggalAbsen, waktuHadir) {
     return Container(
       margin: const EdgeInsets.only(top: 20),
       child: Column(
@@ -175,7 +194,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                '$absenHadir',
+                '$waktuHadir',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -187,7 +206,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                '$absenPulang',
+                'gfgdfgdg',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -199,7 +218,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                '$jamKerja',
+                '7',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -225,25 +244,12 @@ class _AttendancePageState extends State<AttendancePage> {
                   physics: const BouncingScrollPhysics(),
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
-                    final tanggalAbsen = dateFormat
-                        .format(DateTime.parse(
-                            snapshot.data![index].createdAt.toString()))
-                        .toString();
-                    final absenHadir = timeFormat.format(DateTime.parse(
+                    final tanggalHadir = dateFormat.format(DateTime.parse(
                         snapshot.data![index].createdAt.toString()));
-                    final absenPulang = timeFormat.format(DateTime.parse(
-                        snapshot.data![index].updatedAt.toString()));
-                    final jamPulang = (absenHadir == absenPulang)
-                        ? '--.--'
-                        : absenPulang.toString();
-                    final jamKerja = (absenHadir == absenPulang)
-                        ? '--.--'
-                        : DateTime.parse(
-                                snapshot.data![index].updatedAt.toString())
-                            .difference(DateTime.parse(
-                                snapshot.data![index].createdAt.toString()));
-                    return listAbsen(tanggalAbsen, absenHadir.toString(),
-                        jamPulang, jamKerja);
+                    final waktuHadir = timeFormat.format(DateTime.parse(
+                            snapshot.data![index].updatedAt.toString())
+                        .toLocal());
+                    return listAbsen(tanggalHadir, waktuHadir);
                   }),
             );
           } else if (snapshot.hasError) {
@@ -286,24 +292,75 @@ class _AttendancePageState extends State<AttendancePage> {
         padding: const EdgeInsets.only(left: 30, right: 30, bottom: 10),
         child: SizedBox(
           height: 50,
-          child: ElevatedButton.icon(
-            onPressed: _caputerPhoto,
-            label: Text(
-              'Hadir',
-              style: openSansTextStyle.copyWith(
-                fontSize: 15,
-                fontWeight: regular,
-                color: whiteColor,
-              ),
-            ),
-            icon: Icon(Icons.camera_alt_rounded, color: whiteColor),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
+          child: FutureBuilder(
+            future: latestAbsensi,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final formatTglTerakhir = dateFormat.format(DateTime.parse(snapshot.data!.createdAt!)).toString();
+                if ((formatTglTerakhir == formattedCurrentDatetime) && (snapshot.data!.createdAt == snapshot.data!.updatedAt)) {
+                  return ElevatedButton.icon(
+                    onPressed: _caputerPhoto,
+                    label: Text(
+                      'Pulang',
+                      style: openSansTextStyle.copyWith(
+                        fontSize: 15,
+                        fontWeight: regular,
+                        color: whiteColor,
+                      ),
+                    ),
+                    icon: Icon(Icons.camera_alt_rounded, color: whiteColor),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  );
+                } else if ((formatTglTerakhir == formattedCurrentDatetime) && (snapshot.data!.createdAt != snapshot.data!.updatedAt)) {
+                  const Text("Kamu sudah bekerja dengan baik! Saatnya istirahat untuk mengisi energi kembali dan menjalani hari esok. Semangat!:)");
+                }
+                 else {
+                  ElevatedButton.icon(
+                    onPressed: _caputerPhoto,
+                    label: Text(
+                      'Hadir',
+                      style: openSansTextStyle.copyWith(
+                        fontSize: 15,
+                        fontWeight: regular,
+                        color: whiteColor,
+                      ),
+                    ),
+                    icon: Icon(Icons.camera_alt_rounded, color: whiteColor),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  );
+                }
+              }
+              return ElevatedButton.icon(
+                onPressed: _caputerPhoto,
+                label: Text(
+                  'Hadir',
+                  style: openSansTextStyle.copyWith(
+                    fontSize: 15,
+                    fontWeight: regular,
+                    color: whiteColor,
+                  ),
+                ),
+                icon: Icon(Icons.camera_alt_rounded, color: whiteColor),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+              );
+            },
           ),
+          
         ),
       ),
     );

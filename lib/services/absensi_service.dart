@@ -33,10 +33,23 @@ class AbsensiService {
       int? userId = prefs.getInt('userId');
       var fullUri = '$_apiUri/api/v1/absensis/$userId';
       final response = await dio.get(fullUri);
-      debugPrint(response.data['absensis'].toString());
+      // debugPrint(response.data['absensis'].toString());
       return (response.data['absensis'] as List)
           .map((e) => RiwayatAbsensi.fromJson(e))
           .toList();
+    } catch (e) {
+      throw Exception('Network Error : $e');
+    }
+  }
+
+  Future<LatestAbsensi> getLatestAbsensi() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      int? userId = prefs.getInt('userId');
+      var fullUri = '$_apiUri/api/v1/latest-absensi/$userId';
+      final response = await dio.get(fullUri);
+      return LatestAbsensi.fromJson(response.data);
+      // debugPrint(tanggalTerakhir);
     } catch (e) {
       throw Exception('Network Error : $e');
     }
