@@ -22,8 +22,8 @@ class AttendancePage extends StatefulWidget {
 class _AttendancePageState extends State<AttendancePage> {
   // lokasi bidar
   String locationName = 'Universitas Bina Darma';
-  double locationLatitude = -2.9634624;
-  double locationLongitude = 104.7317928;
+  double locationLatitude = -2.9995192;
+  double locationLongitude = 104.7680025;
   // lokasi puskesmas
   // String locationName = 'Puskesmas Tanjung Raja';
   // double locationLatitude = 0.0;
@@ -33,12 +33,14 @@ class _AttendancePageState extends State<AttendancePage> {
   File? fotoFile;
   String? fotoName;
   late User _userData;
+  late LatestAbsensi _latestAbsensi;
   late Future<List<RiwayatAbsensi>> _riwayatAbsensiData;
   late Future<LatestAbsensi> latestAbsensi;
   late DateFormat dateFormat;
   late DateFormat timeFormat;
   final currentDatetime = DateTime.now();
   late String formattedCurrentDatetime;
+  String tombol = "Hadir";
 
   @override
   void initState() {
@@ -130,30 +132,32 @@ class _AttendancePageState extends State<AttendancePage> {
   // }
 
   _sendPresence(int distance) async {
-    if (distance <= 100) {
+    if (distance <= 400) {
       try {
+        _latestAbsensi = await AbsensiService().getLatestAbsensi();
         _userData = await UserService().getUserById();
         var data = {
           'user_id': _userData.id,
           'lokasi': locationName,
         };
-        var res = await AbsensiService().postAbsensi(data, fotoFile!);
+        var res;
+        if (tombol == 'Hadir') {
+          res = await AbsensiService().postAbsensi(data, fotoFile!);
+        } else {
+          res = await AbsensiService()
+              .updateAbsensi(data, fotoFile!, _latestAbsensi.id);
+        }
         if (res['success']) {
+        } else {
           if (context.mounted) {
-            setState(() {});
+            _showSnackBar(res['message']);
           }
         }
       } catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
         if (context.mounted && !_isLoading) Navigator.pop(context);
         _showSnackBar('Error $e');
       }
     } else {
-      setState(() {
-        _isLoading = false;
-      });
       _showSnackBar('Kamu berada di luar Jangkauan ($distance meter)');
     }
   }
@@ -173,7 +177,7 @@ class _AttendancePageState extends State<AttendancePage> {
     _checkDistance();
   }
 
-  Widget listAbsen(tanggalAbsen, waktuHadir) {
+  Widget listAbsen(tanggalAbsen, waktuHadir, waktuPulang, rentangWaktu) {
     return Container(
       margin: const EdgeInsets.only(top: 20),
       child: Column(
@@ -206,7 +210,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                'gfgdfgdg',
+                (waktuPulang == waktuHadir) ? '--.--' : '$waktuPulang',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -218,7 +222,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
               const SizedBox(width: 5),
               Text(
-                '7',
+                (waktuPulang == waktuHadir) ? '--.--' : '$rentangWaktu',
                 style: openSansTextStyle.copyWith(
                     fontSize: 12, fontWeight: regular, color: blackColor),
               ),
@@ -247,9 +251,17 @@ class _AttendancePageState extends State<AttendancePage> {
                     final tanggalHadir = dateFormat.format(DateTime.parse(
                         snapshot.data![index].createdAt.toString()));
                     final waktuHadir = timeFormat.format(DateTime.parse(
+                            snapshot.data![index].createdAt.toString())
+                        .toLocal());
+                    final waktuPulang = timeFormat.format(DateTime.parse(
                             snapshot.data![index].updatedAt.toString())
                         .toLocal());
-                    return listAbsen(tanggalHadir, waktuHadir);
+                    final rentangWaktu = DateTime.parse(
+                            snapshot.data![index].updatedAt.toString())
+                        .difference(DateTime.parse(
+                            snapshot.data![index].createdAt.toString()));
+                    return listAbsen(tanggalHadir, waktuHadir, waktuPulang,
+                        rentangWaktu.toString());
                   }),
             );
           } else if (snapshot.hasError) {
@@ -295,11 +307,20 @@ class _AttendancePageState extends State<AttendancePage> {
           child: FutureBuilder(
             future: latestAbsensi,
             builder: (context, snapshot) {
+              debugPrint(snapshot.hasData.toString());
               if (snapshot.hasData) {
-                final formatTglTerakhir = dateFormat.format(DateTime.parse(snapshot.data!.createdAt!)).toString();
-                if ((formatTglTerakhir == formattedCurrentDatetime) && (snapshot.data!.createdAt == snapshot.data!.updatedAt)) {
+                final formatTglTerakhir = dateFormat
+                    .format(DateTime.parse(snapshot.data!.createdAt!))
+                    .toString();
+                if ((formatTglTerakhir == formattedCurrentDatetime) &&
+                    (snapshot.data!.createdAt == snapshot.data!.updatedAt)) {
                   return ElevatedButton.icon(
-                    onPressed: _caputerPhoto,
+                    onPressed: () {
+                      setState(() {
+                        tombol = "Pulang";
+                      });
+                      _caputerPhoto();
+                    },
                     label: Text(
                       'Pulang',
                       style: openSansTextStyle.copyWith(
@@ -316,12 +337,18 @@ class _AttendancePageState extends State<AttendancePage> {
                       ),
                     ),
                   );
-                } else if ((formatTglTerakhir == formattedCurrentDatetime) && (snapshot.data!.createdAt != snapshot.data!.updatedAt)) {
-                  const Text("Kamu sudah bekerja dengan baik! Saatnya istirahat untuk mengisi energi kembali dan menjalani hari esok. Semangat!:)");
-                }
-                 else {
+                } else if ((formatTglTerakhir == formattedCurrentDatetime) &&
+                    (snapshot.data!.createdAt != snapshot.data!.updatedAt)) {
+                  const Text(
+                      "Kamu sudah bekerja dengan baik! Saatnya istirahat untuk mengisi energi kembali dan menjalani hari esok. Semangat!:)");
+                } else {
                   ElevatedButton.icon(
-                    onPressed: _caputerPhoto,
+                    onPressed: () {
+                      setState(() {
+                        tombol = "Hadir";
+                      });
+                      _caputerPhoto();
+                    },
                     label: Text(
                       'Hadir',
                       style: openSansTextStyle.copyWith(
@@ -360,7 +387,6 @@ class _AttendancePageState extends State<AttendancePage> {
               );
             },
           ),
-          
         ),
       ),
     );

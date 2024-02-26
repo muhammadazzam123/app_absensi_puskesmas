@@ -27,6 +27,22 @@ class AbsensiService {
     }
   }
 
+  updateAbsensi(data, File foto, absensiID) async {
+    try {
+      final fullUri = '$_apiUri/api/v1/update-absensi/$absensiID';
+      String fotoName = foto.path.split('/').last;
+      final formData = FormData.fromMap({
+        'user_id': data['user_id'],
+        'foto': await MultipartFile.fromFile(foto.path, filename: fotoName),
+        'lokasi': data['lokasi']
+      });
+      var response = await dio.post(fullUri, data: formData);
+      return response.data;
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<List<RiwayatAbsensi>> getAbsensisById() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
