@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,11 +16,14 @@ class AuthService {
 
   authLogin(data) async {
     try {
+      debugPrint('aaaa');
       var fullUri = '$_apiUri/api/v1/login';
+      debugPrint('ddddd');
       final response = await dio.post(fullUri, data: data);
+      debugPrint(response.toString());
       return response.data;
     } on DioException catch (e) {
-      return e.message;
+      debugPrint(e.message);
     }
   }
 

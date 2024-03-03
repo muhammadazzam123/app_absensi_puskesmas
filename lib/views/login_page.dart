@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordTextController = TextEditingController();
 
   void _validateForm() {
+    debugPrint('aaaa');
     if (_formState.currentState!.validate()) {
       _login();
     }
@@ -33,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() async {
     try {
+      debugPrint('bbbbb');
       setState(() {
         _isLoading = true;
       });
@@ -41,7 +43,6 @@ class _LoginPageState extends State<LoginPage> {
         "password": passwordTextController.text
       };
       final response = await AuthService().authLogin(data);
-      
 
       if (response['success']) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -72,14 +73,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget usernameForm() {
-    return Container(
-      decoration: BoxDecoration(
-        color: whiteColor,
-        boxShadow: [defaultShadow],
-        border: Border.all(color: const Color(0xfff1f1f1), width: 1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      height: 50,
+    return SizedBox(
       child: TextFormField(
         validator: (value) {
           if (value == '') {
@@ -90,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
         controller: usernameTextController,
         cursorColor: grayColor,
         decoration: InputDecoration(
+          border: const OutlineInputBorder(borderSide: BorderSide.none),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           hintText: 'username',
@@ -103,14 +98,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget passwordForm() {
-    return Container(
-      decoration: BoxDecoration(
-        color: whiteColor,
-        boxShadow: [defaultShadow],
-        border: Border.all(color: const Color(0xfff1f1f1), width: 1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      height: 50,
+    return SizedBox(
       child: TextFormField(
         obscureText: passToggle,
         validator: (value) {
@@ -124,6 +112,7 @@ class _LoginPageState extends State<LoginPage> {
         controller: passwordTextController,
         cursorColor: grayColor,
         decoration: InputDecoration(
+          border: const OutlineInputBorder(borderSide: BorderSide.none),
           suffixIcon: InkWell(
             onTap: () {
               setState(() {
