@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   void _validateForm() {
     debugPrint('aaaa');
     if (_formState.currentState!.validate()) {
-      _login();
+      _login(context);
     }
   }
 
@@ -32,9 +32,8 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void _login() async {
+  void _login(BuildContext context) async {
     try {
-      debugPrint('bbbbb');
       setState(() {
         _isLoading = true;
       });
@@ -54,6 +53,10 @@ class _LoginPageState extends State<LoginPage> {
         if (context.mounted) {
           if (level == 2) {
             Navigator.pushReplacementNamed(context, '/bottom-navbar');
+          } else if (level == 0) {
+            Navigator.pushReplacementNamed(context, '/home-page-admin');
+          } else if (level == 1) {
+            Navigator.pushReplacementNamed(context, '/bottom-navbar-pimpinan');
           } else {
             showSnackBar('Kamu tidak punya akses');
           }

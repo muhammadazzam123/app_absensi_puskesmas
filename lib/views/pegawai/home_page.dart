@@ -1,8 +1,25 @@
+import 'dart:async';
+
+import 'package:app_absensi_puskesmas/models/user_model.dart';
+import 'package:app_absensi_puskesmas/services/user_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late Future<User> user;
+
+  @override
+  void initState() {
+    user = UserService().getUserById();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,11 +30,21 @@ class HomePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 35),
-          Text(
-            'Hello, Adelia Agustina!',
-            style: openSansTextStyle.copyWith(
-                fontSize: 24, fontWeight: semiBold, color: blackColor),
-          ),
+          FutureBuilder<User?>(
+              future: user,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text('Loading ...');
+                } else if (snapshot.hasData) {
+                  return Text(
+                    'Hello, ${snapshot.data!.nama}!',
+                    style: openSansTextStyle.copyWith(
+                        fontSize: 24, fontWeight: semiBold, color: blackColor),
+                  );
+                } else {
+                  return const Text('Terjadi Kesalahan');
+                }
+              }),
           const SizedBox(height: 10),
           Text(
             'Semoga hari ini bisa lebih baik dari kemarin',

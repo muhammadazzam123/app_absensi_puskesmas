@@ -36,7 +36,7 @@ class UserService {
 
   Future<List<User>> getAllUser() async {
     try {
-      String fullUri = '$_apiUri/v1/users';
+      String fullUri = '$_apiUri/api/v1/users';
       final response = await dio.get(fullUri);
       return (response.data as List).map((e) => User.fromJson(e)).toList();
     } catch (e) {

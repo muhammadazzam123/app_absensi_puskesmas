@@ -21,9 +21,9 @@ class AttendancePage extends StatefulWidget {
 
 class _AttendancePageState extends State<AttendancePage> {
   // lokasi bidar
-  String locationName = 'Universitas Bina Darma';
-  double locationLatitude = -2.9995192;
-  double locationLongitude = 104.7680025;
+  String locationName = 'Rumah Fajri';
+  double locationLatitude = -2.9631892;
+  double locationLongitude = 104.7309365;
   // lokasi puskesmas
   // String locationName = 'Puskesmas Tanjung Raja';
   // double locationLatitude = 0.0;
@@ -154,7 +154,6 @@ class _AttendancePageState extends State<AttendancePage> {
           }
         }
       } catch (e) {
-        if (context.mounted && !_isLoading) Navigator.pop(context);
         _showSnackBar('Error $e');
       }
     } else {
@@ -268,8 +267,9 @@ class _AttendancePageState extends State<AttendancePage> {
             return Text(snapshot.error.toString());
           }
           return Container(
+            height: MediaQuery.of(context).size.height / 2,
             alignment: Alignment.center,
-            child: const Center(child: CircularProgressIndicator()),
+            child: const Center(child: Text('Loading...')),
           );
         });
   }

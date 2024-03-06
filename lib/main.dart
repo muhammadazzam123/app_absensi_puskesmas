@@ -13,6 +13,7 @@ import 'package:app_absensi_puskesmas/views/pimpinan/data_detail_pegawai.dart';
 import 'package:app_absensi_puskesmas/views/pimpinan/data_pegawai.dart';
 import 'package:app_absensi_puskesmas/views/pimpinan/detail_absensi_pegawai.dart';
 import 'package:app_absensi_puskesmas/views/pimpinan/home_pimpinan_page.dart';
+import 'package:app_absensi_puskesmas/views/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -34,7 +35,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       routes: {
-        '/': (context) => const LoginPage(),
+        '/': (context) => const SplashPage(),
+        '/login': (context) => const LoginPage(),
         '/bottom-navbar': (context) => const ButtomNavbar(),
         '/home-page': (context) => const HomePage(),
         '/attendance-page': (context) => const AttendancePage(),
