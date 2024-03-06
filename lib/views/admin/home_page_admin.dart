@@ -231,7 +231,7 @@ class CustomDialogWidget extends StatelessWidget {
               style: openSansTextStyle.copyWith(
                   fontSize: 18, fontWeight: regular, color: blackColor),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'Apakah Kamu Yakin Ingin Menghapus Data Ini',
               style: openSansTextStyle.copyWith(

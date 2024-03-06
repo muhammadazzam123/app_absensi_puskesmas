@@ -1,5 +1,4 @@
 import 'package:app_absensi_puskesmas/models/user_model.dart';
-import 'package:app_absensi_puskesmas/services/auth_service.dart';
 import 'package:app_absensi_puskesmas/services/user_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +20,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
   }
 
-  void _logout() async {
+  void _logout(BuildContext context) async {
     try {
       SharedPreferences refs = await SharedPreferences.getInstance();
       refs.remove('token');
@@ -44,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
         future: user,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: const Text('Loading ...'));
+            return const Center(child: Text('Loading ...'));
           } else if (snapshot.hasData) {
             return Column(
               children: [
@@ -138,7 +137,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       height: 50,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          _logout();
+                          _logout(context);
                         },
                         icon: Icon(
                           Icons.logout_outlined,
