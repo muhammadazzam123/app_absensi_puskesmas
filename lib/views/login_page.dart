@@ -18,7 +18,6 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordTextController = TextEditingController();
 
   void _validateForm() {
-    debugPrint('aaaa');
     if (_formState.currentState!.validate()) {
       _login(context);
     }

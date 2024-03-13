@@ -43,4 +43,14 @@ class UserService {
       throw Exception('Network Error : $e');
     }
   }
+
+  addUser(data) async {
+    try {
+      var fullUri = '$_apiUri/api/v1/users/';
+      final response = await dio.post(fullUri, data: data);
+      return response.data;
+    } catch (e) {
+      throw Exception('Network Error : $e');
+    }
+  }
 }

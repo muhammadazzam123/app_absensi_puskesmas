@@ -1,3 +1,4 @@
+import 'package:app_absensi_puskesmas/services/user_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
 
@@ -10,10 +11,91 @@ class AddPegawai extends StatefulWidget {
 
 class _AddPegawaiState extends State<AddPegawai> {
   final _formState = GlobalKey<FormState>();
+  TextEditingController usernameTextController = TextEditingController();
   TextEditingController namaTextController = TextEditingController();
   TextEditingController nipTextController = TextEditingController();
-  TextEditingController alamatTextController = TextEditingController();
+  TextEditingController passwordTextController = TextEditingController();
   TextEditingController jabatanTextController = TextEditingController();
+  bool _isLoading = false;
+
+  void showSnackBar(text) {
+    SnackBar snackBar = SnackBar(
+      content: Text(text.toString()),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void _validateForm() {
+    if (_formState.currentState!.validate()) {
+      _addUser(context);
+    }
+  }
+
+  void _addUser(BuildContext context) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final Map<String, dynamic> data = {
+        'username': usernameTextController.text,
+        'nama': namaTextController.text,
+        'nip': nipTextController.text,
+        'password': passwordTextController.text,
+        'jabatan': jabatanTextController.text,
+        'level': 2
+      };
+
+      final response = await UserService().addUser(data);
+
+      if (context.mounted && response['success']) {
+        Navigator.pushReplacementNamed(context, '/home-page-admin');
+      }
+
+      showSnackBar(response['message']);
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      showSnackBar('Error :$e');
+    }
+  }
+
+  Widget usernameForm() {
+    return Container(
+      decoration: BoxDecoration(
+        color: whiteColor,
+        boxShadow: [defaultShadow],
+        border: Border.all(color: const Color(0xfff1f1f1), width: 1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      height: 50,
+      child: TextFormField(
+        validator: (value) {
+          if (value == '') {
+            return "username tidak boleh kosong";
+          }
+          return null;
+        },
+        controller: usernameTextController,
+        cursorColor: grayColor,
+        decoration: InputDecoration(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          hintText: 'masukkan username...',
+          hintStyle: openSansTextStyle.copyWith(
+              fontSize: 15, color: grayColor, fontWeight: regular),
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+        ),
+      ),
+    );
+  }
 
   Widget namaForm() {
     return Container(
@@ -89,16 +171,16 @@ class _AddPegawaiState extends State<AddPegawai> {
       child: TextFormField(
         validator: (value) {
           if (value == '') {
-            return "alamat tidak boleh kosong";
+            return "password tidak boleh kosong";
           }
           return null;
         },
-        controller: alamatTextController,
+        controller: passwordTextController,
         cursorColor: grayColor,
         decoration: InputDecoration(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          hintText: 'masukkan alamat...',
+          hintText: 'masukkan password...',
           hintStyle: openSansTextStyle.copyWith(
               fontSize: 15, color: grayColor, fontWeight: regular),
           focusedBorder: InputBorder.none,
@@ -141,7 +223,9 @@ class _AddPegawaiState extends State<AddPegawai> {
 
   Widget buttonMasuk() {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        _validateForm();
+      },
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -152,11 +236,13 @@ class _AddPegawaiState extends State<AddPegawai> {
         ),
         height: 50,
         child: Center(
-          child: Text(
-            'Tambah',
-            style: openSansTextStyle.copyWith(
-                fontSize: 15, fontWeight: regular, color: whiteColor),
-          ),
+          child: _isLoading
+              ? const CircularProgressIndicator()
+              : Text(
+                  'Tambah',
+                  style: openSansTextStyle.copyWith(
+                      fontSize: 15, fontWeight: regular, color: whiteColor),
+                ),
         ),
       ),
     );
@@ -193,6 +279,8 @@ class _AddPegawaiState extends State<AddPegawai> {
             child: Column(
               children: [
                 const SizedBox(height: 30),
+                usernameForm(),
+                const SizedBox(height: 20),
                 namaForm(),
                 const SizedBox(height: 20),
                 nipForm(),
