@@ -1,3 +1,4 @@
+import 'package:app_absensi_puskesmas/models/user_model.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
 
@@ -6,6 +7,7 @@ class DetailPegawaiAdmin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final User user = ModalRoute.of(context)!.settings.arguments as User;
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
@@ -38,7 +40,7 @@ class DetailPegawaiAdmin extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                'Adelya Agustina',
+                '${user.nama}',
                 style: openSansTextStyle.copyWith(
                     fontSize: 14, fontWeight: semiBold, color: blackColor),
               ),
@@ -57,7 +59,7 @@ class DetailPegawaiAdmin extends StatelessWidget {
                       ),
                       const SizedBox(width: 20),
                       Text(
-                        ': Adelya Agustina',
+                        ': ${user.nama}',
                         style: openSansTextStyle.copyWith(
                             fontSize: 14,
                             color: grayColorDua,
@@ -77,27 +79,7 @@ class DetailPegawaiAdmin extends StatelessWidget {
                       ),
                       const SizedBox(width: 35),
                       Text(
-                        ': 812378123712',
-                        style: openSansTextStyle.copyWith(
-                            fontSize: 14,
-                            color: grayColorDua,
-                            fontWeight: regular),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Text(
-                        'TTL',
-                        style: openSansTextStyle.copyWith(
-                            fontSize: 14,
-                            color: grayColorDua,
-                            fontWeight: regular),
-                      ),
-                      const SizedBox(width: 35),
-                      Text(
-                        ': Jl Silaberanti Kelurahan 13 ulu Plaju',
+                        ': ${user.nip}',
                         style: openSansTextStyle.copyWith(
                             fontSize: 14,
                             color: grayColorDua,
@@ -117,7 +99,7 @@ class DetailPegawaiAdmin extends StatelessWidget {
                       ),
                       const SizedBox(width: 7),
                       Text(
-                        ': Perawat Senior',
+                        ': ${user.jabatan}',
                         style: openSansTextStyle.copyWith(
                             fontSize: 14,
                             color: grayColorDua,

@@ -21,7 +21,7 @@ class _HomePageAdminState extends State<HomePageAdmin> {
     users = UserService().getAllUser();
   }
 
-  Widget listAbsen(BuildContext context, username, jabatan) {
+  Widget listAbsen(BuildContext context, username, jabatan, user) {
     return SizedBox(
       child: Column(
         children: [
@@ -67,7 +67,8 @@ class _HomePageAdminState extends State<HomePageAdmin> {
               const SizedBox(width: 10),
               IconButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/detail-pegawai-admin');
+                  Navigator.pushNamed(context, '/detail-pegawai-admin',
+                      arguments: user);
                 },
                 icon: Icon(
                   Icons.space_dashboard_outlined,
@@ -169,7 +170,8 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                                 return listAbsen(
                                     context,
                                     snapshot.data![index].nama,
-                                    snapshot.data![index].jabatan);
+                                    snapshot.data![index].jabatan,
+                                    snapshot.data![index]);
                               });
                         } else {
                           return const Text('Loading ...');
