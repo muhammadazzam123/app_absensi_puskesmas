@@ -1,3 +1,5 @@
+import 'package:app_absensi_puskesmas/models/user_model.dart';
+import 'package:app_absensi_puskesmas/services/user_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
 
@@ -12,8 +14,55 @@ class _EditPegawaiState extends State<EditPegawai> {
   final _formState = GlobalKey<FormState>();
   TextEditingController namaTextController = TextEditingController();
   TextEditingController nipTextController = TextEditingController();
-  TextEditingController alamatTextController = TextEditingController();
   TextEditingController jabatanTextController = TextEditingController();
+  late int idTextController;
+  bool _isLoading = false;
+
+  void showSnackBar(text) {
+    SnackBar snackBar = SnackBar(
+      content: Text(text.toString()),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void _validateForm() {
+    if (_formState.currentState!.validate()) {
+      _addUser(context);
+    }
+  }
+
+  void _addUser(BuildContext context) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final Map<String, dynamic> data = {
+        'nama': namaTextController.text,
+        'nip': nipTextController.text,
+        'jabatan': jabatanTextController.text,
+        'id': idTextController
+      };
+
+      final response = await UserService().editUser(data);
+
+      if (context.mounted && response['success']) {
+        Navigator.pushReplacementNamed(context, '/home-page-admin');
+      }
+
+      showSnackBar(response['message']);
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      showSnackBar('Error :$e');
+    }
+  }
 
   Widget namaForm() {
     return Container(
@@ -77,37 +126,6 @@ class _EditPegawaiState extends State<EditPegawai> {
     );
   }
 
-  Widget alamatForm() {
-    return Container(
-      decoration: BoxDecoration(
-        color: whiteColor,
-        boxShadow: [defaultShadow],
-        border: Border.all(color: const Color(0xfff1f1f1), width: 1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      height: 50,
-      child: TextFormField(
-        validator: (value) {
-          if (value == '') {
-            return "alamat tidak boleh kosong";
-          }
-          return null;
-        },
-        controller: alamatTextController,
-        cursorColor: grayColor,
-        decoration: InputDecoration(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          hintText: 'masukkan alamat...',
-          hintStyle: openSansTextStyle.copyWith(
-              fontSize: 15, color: grayColor, fontWeight: regular),
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
-        ),
-      ),
-    );
-  }
-
   Widget jabatanForm() {
     return Container(
       decoration: BoxDecoration(
@@ -141,7 +159,9 @@ class _EditPegawaiState extends State<EditPegawai> {
 
   Widget buttonMasuk() {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        _validateForm();
+      },
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -152,11 +172,13 @@ class _EditPegawaiState extends State<EditPegawai> {
         ),
         height: 50,
         child: Center(
-          child: Text(
-            'Simpan',
-            style: openSansTextStyle.copyWith(
-                fontSize: 15, fontWeight: regular, color: whiteColor),
-          ),
+          child: _isLoading
+              ? const CircularProgressIndicator()
+              : Text(
+                  'Simpan',
+                  style: openSansTextStyle.copyWith(
+                      fontSize: 15, fontWeight: regular, color: whiteColor),
+                ),
         ),
       ),
     );
@@ -164,6 +186,11 @@ class _EditPegawaiState extends State<EditPegawai> {
 
   @override
   Widget build(BuildContext context) {
+    final User user = ModalRoute.of(context)!.settings.arguments as User;
+    idTextController = user.id!;
+    namaTextController.text = user.nama!;
+    nipTextController.text = user.nip!;
+    jabatanTextController.text = user.jabatan!;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -196,8 +223,6 @@ class _EditPegawaiState extends State<EditPegawai> {
                 namaForm(),
                 const SizedBox(height: 20),
                 nipForm(),
-                const SizedBox(height: 20),
-                alamatForm(),
                 const SizedBox(height: 20),
                 jabatanForm(),
                 const SizedBox(height: 60),

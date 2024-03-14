@@ -16,11 +16,10 @@ class AuthService {
 
   authLogin(data) async {
     try {
-      debugPrint('aaaa');
       var fullUri = '$_apiUri/api/v1/login';
-      debugPrint('ddddd');
+
       final response = await dio.post(fullUri, data: data);
-      debugPrint(response.toString());
+
       return response.data;
     } on DioException catch (e) {
       debugPrint(e.message);

@@ -53,4 +53,14 @@ class UserService {
       throw Exception('Network Error : $e');
     }
   }
+
+  editUser(data) async {
+    try {
+      var fullUri = '$_apiUri/api/v1/users/';
+      final response = await dio.put(fullUri, data: data);
+      return response.data;
+    } catch (e) {
+      throw Exception('Network Error : $e');
+    }
+  }
 }

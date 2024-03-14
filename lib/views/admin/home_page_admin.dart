@@ -78,7 +78,8 @@ class _HomePageAdminState extends State<HomePageAdmin> {
               ),
               IconButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/edit-pegawai');
+                  Navigator.pushNamed(context, '/edit-pegawai',
+                      arguments: user);
                 },
                 icon: Iconify(
                   MaterialSymbols.edit_document_outline_rounded,
