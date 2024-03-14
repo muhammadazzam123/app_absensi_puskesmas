@@ -91,7 +91,9 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const CustomDialogWidget(),
+                    builder: (context) => CustomDialogWidget(
+                      id: user.id,
+                    ),
                   );
                 },
                 icon: Iconify(
@@ -214,8 +216,49 @@ class _HomePageAdminState extends State<HomePageAdmin> {
   }
 }
 
-class CustomDialogWidget extends StatelessWidget {
-  const CustomDialogWidget({super.key});
+class CustomDialogWidget extends StatefulWidget {
+  final int id;
+  const CustomDialogWidget({super.key, required this.id});
+
+  @override
+  State<CustomDialogWidget> createState() => _CustomDialogWidgetState();
+}
+
+class _CustomDialogWidgetState extends State<CustomDialogWidget> {
+  bool _isLoading = false;
+
+  void showSnackBar(text) {
+    SnackBar snackBar = SnackBar(
+      content: Text(text.toString()),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  deleteUser(id) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final response = await UserService().deleteUser(id);
+
+      if (context.mounted && response['success']) {
+        Navigator.pop(context);
+      }
+
+      showSnackBar(response['message']);
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      showSnackBar('Error :$e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -245,15 +288,22 @@ class CustomDialogWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    deleteUser(widget.id);
+                    setState(() {});
+                  },
                   style: const ButtonStyle(
                       backgroundColor:
                           MaterialStatePropertyAll(Color(0xffC43121))),
-                  child: Text(
-                    'Hapus',
-                    style: openSansTextStyle.copyWith(
-                        fontSize: 10, fontWeight: regular, color: whiteColor),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator()
+                      : Text(
+                          'Hapus',
+                          style: openSansTextStyle.copyWith(
+                              fontSize: 10,
+                              fontWeight: regular,
+                              color: whiteColor),
+                        ),
                 ),
                 const SizedBox(width: 10),
                 TextButton(

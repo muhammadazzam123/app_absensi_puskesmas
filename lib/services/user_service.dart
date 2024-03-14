@@ -63,4 +63,14 @@ class UserService {
       throw Exception('Network Error : $e');
     }
   }
+
+  deleteUser(id) async {
+    try {
+      var fullUri = '$_apiUri/api/v1/users/';
+      final response = await dio.delete(fullUri, data: {'id': id});
+      return response.data;
+    } catch (e) {
+      throw Exception('Network Error : $e');
+    }
+  }
 }
