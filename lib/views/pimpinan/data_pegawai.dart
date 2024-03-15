@@ -1,10 +1,25 @@
+import 'package:app_absensi_puskesmas/models/user_model.dart';
+import 'package:app_absensi_puskesmas/services/user_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
 
-class DataPegawai extends StatelessWidget {
+class DataPegawai extends StatefulWidget {
   const DataPegawai({super.key});
 
-  Widget listAbsen(BuildContext context) {
+  @override
+  State<DataPegawai> createState() => _DataPegawaiState();
+}
+
+class _DataPegawaiState extends State<DataPegawai> {
+  late Future<List<User>> users;
+
+  @override
+  void initState() {
+    super.initState();
+    users = UserService().getAllUser();
+  }
+
+  Widget listAbsen(BuildContext context, User user) {
     return SizedBox(
       child: Column(
         children: [
@@ -26,7 +41,7 @@ class DataPegawai extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Adelya Agustina',
+                        '${user.nama}',
                         style: openSansTextStyle.copyWith(
                           fontSize: 15,
                           color: blackColor,
@@ -35,7 +50,7 @@ class DataPegawai extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        'Perawat Senior',
+                        '${user.jabatan}',
                         style: openSansTextStyle.copyWith(
                           fontSize: 8,
                           fontWeight: regular,
@@ -49,7 +64,8 @@ class DataPegawai extends StatelessWidget {
               const SizedBox(width: 25),
               InkWell(
                 onTap: () {
-                  Navigator.pushNamed(context, '/data-detail-pegawai');
+                  Navigator.pushNamed(context, '/data-detail-pegawai',
+                      arguments: user);
                 },
                 child: Row(
                   children: [
@@ -100,11 +116,20 @@ class DataPegawai extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30),
-        child: Column(
-          children: [
-            listAbsen(context),
-          ],
-        ),
+        child: FutureBuilder(
+            future: users,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return listAbsen(context, snapshot.data![index]);
+                    });
+              } else {
+                return const Text('Loading ...');
+              }
+            }),
       ),
     );
   }
