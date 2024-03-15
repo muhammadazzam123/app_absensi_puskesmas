@@ -4,6 +4,7 @@ import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
 import 'package:iconify_flutter/icons/material_symbols.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePageAdmin extends StatefulWidget {
   const HomePageAdmin({super.key});
@@ -19,6 +20,20 @@ class _HomePageAdminState extends State<HomePageAdmin> {
   void initState() {
     super.initState();
     users = UserService().getAllUser();
+  }
+
+  void _logout(BuildContext context) async {
+    try {
+      SharedPreferences refs = await SharedPreferences.getInstance();
+      refs.remove('token');
+      refs.remove('userId');
+      refs.remove('userLevel');
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
+    } catch (e) {
+      debugPrint('Gagal Logout $e');
+    }
   }
 
   Widget listAbsen(BuildContext context, username, jabatan, user) {
@@ -145,7 +160,9 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                       ],
                     ),
                     IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _logout(context);
+                        },
                         icon: Icon(
                           Icons.logout_outlined,
                           size: 25,
