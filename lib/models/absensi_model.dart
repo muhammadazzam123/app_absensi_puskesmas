@@ -16,9 +16,15 @@ class RiwayatAbsensi {
   String? foto;
   String? createdAt;
   String? updatedAt;
+  User? user;
 
   RiwayatAbsensi(
-      {this.id, this.userId, this.foto, this.createdAt, this.updatedAt});
+      {this.id,
+      this.userId,
+      this.foto,
+      this.createdAt,
+      this.updatedAt,
+      this.user});
 
   RiwayatAbsensi.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -26,6 +32,7 @@ class RiwayatAbsensi {
     foto = json['foto'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    user = json['user'] != null ? User.fromJson(json['user']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -35,6 +42,9 @@ class RiwayatAbsensi {
     data['foto'] = foto;
     data['created_at'] = createdAt;
     data['updated_at'] = updatedAt;
+    if (user != null) {
+      data['user'] = user!.toJson();
+    }
     return data;
   }
 }

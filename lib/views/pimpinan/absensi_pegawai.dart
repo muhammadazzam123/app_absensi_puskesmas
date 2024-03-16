@@ -1,10 +1,42 @@
+import 'package:app_absensi_puskesmas/models/absensi_model.dart';
+import 'package:app_absensi_puskesmas/services/absensi_service.dart';
 import 'package:app_absensi_puskesmas/theme/style.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
-class ReportAbsenPegawai extends StatelessWidget {
+class ReportAbsenPegawai extends StatefulWidget {
   const ReportAbsenPegawai({super.key});
 
-  Widget listAbsen(BuildContext context) {
+  @override
+  State<ReportAbsenPegawai> createState() => _ReportAbsenPegawaiState();
+}
+
+class _ReportAbsenPegawaiState extends State<ReportAbsenPegawai> {
+  late Future<List<RiwayatAbsensi>> _riwayatAbsensiData;
+  late DateFormat dateFormat;
+  late DateFormat timeFormat;
+
+  @override
+  void initState() {
+    super.initState();
+
+    initializeDateFormatting();
+    dateFormat = DateFormat.yMd('id');
+    timeFormat = DateFormat.Hm('id');
+    _riwayatAbsensiData = AbsensiService().getAllAbsensi();
+  }
+
+  Widget listAbsen(BuildContext context, RiwayatAbsensi riwayatAbsensi) {
+    // final tanggalHadir = dateFormat
+    //     .format(DateTime.parse(snapshot.data![index].createdAt.toString()));
+    final waktuHadir = timeFormat
+        .format(DateTime.parse(riwayatAbsensi.createdAt.toString()).toLocal());
+    final waktuPulang = timeFormat
+        .format(DateTime.parse(riwayatAbsensi.updatedAt.toString()).toLocal());
+    // final rentangWaktu =
+    //     DateTime.parse(snapshot.data![index].updatedAt.toString()).difference(
+    //         DateTime.parse(snapshot.data![index].createdAt.toString()));
     return InkWell(
       onTap: () {
         Navigator.pushNamed(context, '/absen-pegawai-detail');
@@ -28,7 +60,7 @@ class ReportAbsenPegawai extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Adelya Agustina',
+                      '${riwayatAbsensi.user!.nama}',
                       style: openSansTextStyle.copyWith(
                         fontSize: 15,
                         color: blackColor,
@@ -37,7 +69,7 @@ class ReportAbsenPegawai extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Perawat Senior',
+                      '${riwayatAbsensi.user!.jabatan}',
                       style: openSansTextStyle.copyWith(
                         fontSize: 8,
                         fontWeight: regular,
@@ -54,7 +86,7 @@ class ReportAbsenPegawai extends StatelessWidget {
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  '08.30',
+                  waktuHadir,
                   style: openSansTextStyle.copyWith(
                       fontSize: 12, fontWeight: regular, color: blackColor),
                 ),
@@ -66,7 +98,7 @@ class ReportAbsenPegawai extends StatelessWidget {
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  '08.30',
+                  waktuPulang,
                   style: openSansTextStyle.copyWith(
                       fontSize: 12, fontWeight: regular, color: blackColor),
                 ),
@@ -117,17 +149,38 @@ class ReportAbsenPegawai extends StatelessWidget {
                     color: blackColor,
                   ),
                 ),
-                Text(
-                  '12/06/2024',
-                  style: openSansTextStyle.copyWith(
-                    fontSize: 12,
-                    color: blackColor,
-                    fontWeight: semiBold,
-                  ),
-                )
+                // Text(
+                //   '12/06/2024',
+                //   style: openSansTextStyle.copyWith(
+                //     fontSize: 12,
+                //     color: blackColor,
+                //     fontWeight: semiBold,
+                //   ),
+                // )
               ],
             ),
-            listAbsen(context),
+            FutureBuilder(
+                future: _riwayatAbsensiData,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      child: ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            return listAbsen(context, snapshot.data![index]);
+                          }),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  }
+                  return Container(
+                    height: MediaQuery.of(context).size.height / 2,
+                    alignment: Alignment.center,
+                    child: const Center(child: Text('Loading...')),
+                  );
+                })
           ],
         ),
       ),
